@@ -1,0 +1,13 @@
+{
+  "name": "forge",
+  "description": "Multi-agent collaborative development workflow: Planner → Dev → Test → Learn with automatic bug-fix loops, test layering, and experience accumulation",
+  "version": "1.0.0",
+  "author": {
+    "name": "zjio26",
+    "email": "zjio2026@outlook.com"
+  },
+  "homepage": "https://github.com/zjio26/forge",
+  "repository": "https://github.com/zjio26/forge",
+  "license": "MIT",
+  "keywords": ["workflow", "multi-agent", "development", "testing", "automation"]
+}

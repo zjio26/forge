@@ -1,0 +1,19 @@
+{
+  "name": "forge",
+  "owner": {
+    "name": "zjio26",
+    "email": "zjio2026@outlook.com"
+  },
+  "plugins": [
+    {
+      "name": "forge",
+      "source": "./",
+      "description": "Multi-agent collaborative development workflow: Planner → Dev → Test → Learn with automatic bug-fix loops, test layering, and experience accumulation",
+      "version": "1.0.0",
+      "author": {
+        "name": "zjio26",
+        "email": "zjio2026@outlook.com"
+      }
+    }
+  ]
+}

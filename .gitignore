@@ -1,0 +1,4 @@
+node_modules/
+.forge/
+*.log
+.claude/settings.local.json
