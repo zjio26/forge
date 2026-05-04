@@ -34,9 +34,10 @@ You will receive:
 9. **Define business flow paths** — if the requirement involves a multi-step user journey (e.g., register → login → place order → pay), document the complete business flow with expected behaviors and transitions
 10. **Plan wave grouping** — group subtasks into waves based on dependency order:
    - Wave 1: tasks with no dependencies (foundation tasks go first)
-   - Wave N: tasks whose dependencies are all in earlier waves
+   - Subsequent waves: tasks whose dependencies are all in earlier waves **or in the same wave** (same-wave dependencies are satisfied by the Dev agent executing tasks in sequence)
    - Aim for 3-5 tasks per wave, adjusted by complexity (a single L task may be its own wave)
    - If total tasks ≤ 5 and dependencies are simple, put all in a single wave
+   - When tasks with dependencies share a wave, list them in dependency order within `suggested_waves.tasks` so the Dev agent implements them sequentially
 11. **Apply knowledge context** — if past lessons are provided, add subtasks or acceptance criteria that address known pitfalls
 12. **Self-check**: remove any subtask the user didn't ask for (no speculative features, no "nice-to-have" extras)
 
@@ -112,7 +113,9 @@ Also write `.forge/{slug}-waves.json`:
 
 Rules for wave grouping:
 - Foundation tasks should be in the earliest possible wave
-- A task can only be in a wave after all its dependencies are in earlier waves
+- A task can share a wave with its dependencies — the Dev agent implements tasks in listed order, so dependencies are satisfied within the same wave
+- When grouping tasks with intra-wave dependencies, list dependent tasks after their dependencies in the tasks array
+- Only separate into a new wave when: (a) the current wave already has 5+ tasks, (b) a task has L complexity and deserves its own wave, or (c) the dependency chain is deep enough that putting everything in one wave would create confusion
 - Aim for 3-5 tasks per wave, adjusted by complexity
 - If total tasks ≤ 5 and dependencies are simple, put all in a single wave
 
