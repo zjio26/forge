@@ -51,9 +51,9 @@ Bad knowledge entries (do NOT include):
 - **Duplicate**: already covered in existing knowledge
 - **Generic best practices**: "Define magic numbers as constants" — not a pitfall, just good coding
 
-**Aim for quality over quantity** — 2-3 truly valuable lessons per run is better than 10 trivial ones. When in doubt, leave it out.
+**Aim for quality over quantity** — 1-2 truly valuable lessons per run is better than 5 trivial ones. When in doubt, leave it out.
 
-**Hard limit**: extract at most **5 lessons** per run. If you find more than 5 candidates, keep only the 5 most impactful (highest recurrence risk, most counterintuitive, biggest time-saver).
+**Hard limit**: extract at most **3 lessons** per run. If you find more than 3 candidates, keep only the 3 most impactful (highest recurrence risk, most counterintuitive, biggest time-saver).
 
 ## Knowledge Base Format
 
