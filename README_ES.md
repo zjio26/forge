@@ -40,7 +40,7 @@ Lo has vivido:
 
 Forge no le pide al modelo que "tenga cuidado". Suelda la disciplina de ingeniería en el workflow:
 
-| Superpoder | Cómo funciona |
+| Mecanismo | Cómo funciona |
 |------------|---------------|
 | **Bucle cerrado Dev→Test→Fix** | Dev debe pasar Test. ¿Falla? Fix. ¿Falla otra vez? Fix otra vez, hasta 3 rondas. Veredicto: PASS/FAIL — nada de "parece bien" |
 | **Escalado por Waves** | Requisitos grandes se dividen automáticamente en Waves. Cada wave obtiene un par fresco de Dev+Test. Handoff entre waves vía archivos de handoff |
@@ -110,7 +110,7 @@ Calidad a través de restricciones estructurales, no autodisciplina del modelo:
 
 ```
 /plugin marketplace add zjio26/forge
-/plugin install forge@forge
+/plugin install forge
 ```
 
 **Instalación offline:**

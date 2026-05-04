@@ -40,7 +40,7 @@
 
 Forgeはモデルに「気をつけて」と頼むのではなく、工学的規律をワークフローに組み込む：
 
-| 能力 | 仕組み |
+| 機構 | 仕組み |
 |------|--------|
 | **閉ループ Dev→Test→Fix** | DevはTestを通過しなければならない。失敗？修正。また失敗？再修正、最大3ラウンド。判定はPASS/FAIL — 「まあ大丈夫」は不可 |
 | **Waveベースのスケーリング** | 大きな要件は自動的にWaveに分割。各Waveに独立したDev+Testペアを割り当て。Wave間のhandoffはhandoffファイル経由 |
@@ -110,7 +110,7 @@ User ──"/forge requirement"──▶ Coordinator
 
 ```
 /plugin marketplace add zjio26/forge
-/plugin install forge@forge
+/plugin install forge
 ```
 
 **オフラインインストール:**

@@ -40,7 +40,7 @@ You've been there:
 
 Forge doesn't ask the model to "be careful." It welds engineering discipline into the workflow:
 
-| Superpower | How It Works |
+| Mechanism | How It Works |
 |------------|--------------|
 | **Closed-Loop Dev→Test→Fix** | Dev must pass Test. Fails? Fix. Fails again? Fix again, up to 3 rounds. Verdict: PASS/FAIL — no "looks fine" |
 | **Wave-Based Scaling** | Large requirements auto-split into Waves. Each wave gets a fresh Dev+Test pair. Cross-wave handoff via handoff files |
@@ -110,7 +110,7 @@ Quality through structural constraints, not model self-discipline:
 
 ```
 /plugin marketplace add zjio26/forge
-/plugin install forge@forge
+/plugin install forge
 ```
 
 **Offline install:**

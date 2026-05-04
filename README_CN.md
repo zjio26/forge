@@ -39,7 +39,7 @@
 
 Forge 不靠"请仔细一点"这种废话。它把工程纪律焊进工作流：
 
-| 超能力 | 怎么干的 |
+| 机制 | 如何实现 |
 |--------|----------|
 | **闭环 Dev→Test→Fix** | Dev 写完必须过 Test，不过就 Fix，再不过再 Fix，最多三轮。结果只有 PASS/FAIL，没有"看起来还行" |
 | **分波作战** | 大需求自动拆成 Wave，每波一对新 Dev+Test，上下文干净不溢出，波间交接靠 handoff 文件 |
@@ -109,7 +109,7 @@ Forge 不靠"请仔细一点"这种废话。它把工程纪律焊进工作流：
 
 ```
 /plugin marketplace add zjio26/forge
-/plugin install forge@forge
+/plugin install forge
 ```
 
 **离线安装：**
