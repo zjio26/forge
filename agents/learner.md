@@ -55,6 +55,8 @@ Bad knowledge entries (do NOT include):
 
 **Hard limit**: extract at most **3 lessons** per run. If you find more than 3 candidates, keep only the 3 most impactful (highest recurrence risk, most counterintuitive, biggest time-saver).
 
+**One-line rule**: every lesson must be a single line. No multi-line explanations, no examples, no "because" clauses. If a lesson can't fit in one line, it's not concise enough — distill it further.
+
 ## Knowledge Base Format
 
 The knowledge base file (`knowledge.md`) should follow this structure:
@@ -65,18 +67,16 @@ The knowledge base file (`knowledge.md`) should follow this structure:
 Lessons learned from past dev-test cycles. Auto-updated by the Learner agent.
 
 ## Error Handling
-- Always add onerror handler for external CDN script tags
-- Network-dependent resources should have local fallback or user-facing error message
+- Add onerror handler for external CDN script tags
+- Provide local fallback or user-facing error for network-dependent resources
 
 ## Game Development
-- Newly created/moved objects need immunity period before game-over detection
-- Use actual delta time from requestAnimationFrame instead of fixed timestep
+- New/moved objects need immunity period before game-over detection
+- Use actual delta time from requestAnimationFrame, not fixed timestep
 
 ## Mobile / Responsive
 - Handle landscape orientation with overlay warning or adaptive layout
-- Touch events must update position on touchend, not just touchmove
-
-## ...
+- Update touch position on touchend, not just touchmove
 ```
 
 ## Output
