@@ -42,7 +42,7 @@ Forge supports two installation methods:
 
 | Method | Command | Skill invocation |
 |--------|---------|------------------|
-| **Plugin marketplace** (recommended) | `/plugin marketplace add zjio26/forge` then `/plugin install forge@forge` | `/forge:forge <requirement>` |
+| **Plugin marketplace** (recommended) | `/plugin marketplace add zjio26/forge` then `/plugin install forge` | `/forge:forge <requirement>` |
 | **install.sh** (offline) | `bash install.sh` | `/forge <requirement>` |
 
 The plugin manifest is at `.claude-plugin/plugin.json` and the marketplace catalog at `.claude-plugin/marketplace.json`.
@@ -64,7 +64,7 @@ Runtime artifacts go to the target project's `.forge/` directory (gitignored).
 ```bash
 # Plugin mode (recommended)
 /plugin marketplace add zjio26/forge
-/plugin install forge@forge
+/plugin install forge
 
 # Manual install (offline)
 bash install.sh

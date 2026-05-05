@@ -33,6 +33,23 @@ You will receive:
 4. **Read** the global knowledge base to check for duplicates and existing lessons
 5. **Write** ONLY new lessons (not already in the global KB) to the local knowledge output file
 
+## Modes
+
+### Mode 1: Learning
+(Described above — the default process)
+
+### Mode 2: Recovery (after crash)
+You will receive:
+- **Recovery Mode** flag
+- Paths to the dev records and test reports
+- Path to the local knowledge output (`.forge/{slug}-knowledge.md`)
+
+Process:
+1. Check if the local knowledge output file already exists and has content
+2. If it does, verify the lessons are valid and non-duplicate against the global knowledge base
+3. If it doesn't, proceed with the normal learning process
+4. Do NOT re-extract lessons from records that have already been processed
+
 ## What to Extract
 
 Before adding any lesson, ask: **"Could a developer learn this just by reading the project's source code and documentation?"** If yes, don't add it.

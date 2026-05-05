@@ -86,7 +86,7 @@ User ──"/forge requirement"──▶ Coordinator
 | Planner | sonnet | Decomposes requirements, defines acceptance criteria, surfaces ambiguities |
 | Dev | sonnet | Implements features, writes unit tests, fixes bugs — only what's in the plan |
 | Test | haiku | Unit tests must pass, integration tests best-effort, bug reports precise |
-| Learner | haiku | Extracts lessons, deduplicates, max 5 per run |
+| Learner | haiku | Extracts lessons, deduplicates, max 3 per run |
 
 ---
 

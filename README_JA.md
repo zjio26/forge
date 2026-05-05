@@ -86,7 +86,7 @@ User ──"/forge requirement"──▶ Coordinator
 | Planner | sonnet | 要件を分解、受け入れ基準を定義、曖昧さを表面化 |
 | Dev | sonnet | 機能を実装、ユニットテストを記述、バグを修正 — プランにあることのみ |
 | Test | haiku | ユニットテストは必須合格、インテグレーションテストはベストエフォート、バグレポートは的確に |
-| Learner | haiku | 教訓を抽出、重複排除、1回あたり最大5件 |
+| Learner | haiku | 教訓を抽出、重複排除、1回あたり最大3件 |
 
 ---
 

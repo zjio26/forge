@@ -35,6 +35,8 @@ Before starting a new workflow, check if `.forge/{slug}-state.json` already exis
   2. Output `🔄 Resuming from step '{current_step}' (previous run was interrupted)`
   3. Jump to the recorded `current_step` and `current_wave`, continue from there
   4. If agent IDs are present but the agent is no longer reachable (SendMessage fails), create a new agent in Recovery Mode (see agent definitions) with the relevant file paths so it can rebuild context from the written records
+  5. If resuming at Step 1 (Plan) and no planner agent ID exists, create a new planner agent in Recovery Mode with the existing plan and waves paths
+  6. If resuming at Step 4 (Learn) and no learner agent ID exists, create a new learner agent in Recovery Mode with the dev/test record paths and local knowledge output path
 
 **Important**: When resuming, restore all tracked variables (slug, paths, wave_plan, fix_round, agent IDs, metrics) from the state file before continuing.
 
@@ -48,6 +50,7 @@ Call the **planner** agent with:
 - **The knowledge context** from Step 0 (past lessons learned)
 
 After the planner returns:
+- **Check for truncated reply** — if the reply is missing both the plan file path and the waves.json path, the planner likely hit maxTurns. Create a new planner agent in Recovery Mode with the existing plan and waves paths, up to 2 retries (3 total attempts). If all attempts fail, output an error and stop
 - **Check if the planner flagged ambiguities** — if the plan contains `## Clarifications Needed`, this means the planner has questions that need user input
 - If **clarifications are needed**:
   1. Read the `## Clarifications Needed` section from the plan file
@@ -100,6 +103,7 @@ Build the Dev agent prompt with:
 - Dev log path: `.forge/{slug}-dev-W{W}.log`
 
 After the dev agent returns:
+- **Check for truncated reply** — if the reply is missing the status field or the dev record path, the dev agent likely hit maxTurns. Create a new dev agent in Recovery Mode with the plan file path, wave tasks, dev record path, and dev log path, up to 2 retries (3 total attempts). If all attempts fail, mark the wave as failed and move to the next wave
 - Record the dev agent ID, status, unit test stats, and handoff path
 - **Do NOT read the dev record content**
 - **Save state**: update `.forge/{slug}-state.json` with `current_step: "test"`, `current_wave: W`, `agent_ids.dev_W{W}`, `handoff_paths.W{W}`
@@ -118,6 +122,7 @@ Build the Test agent prompt with:
 - Test log path: `.forge/{slug}-test-W{W}.log`
 
 After the test agent returns:
+- **Check for truncated reply** — if the reply is missing the result field (pass/fail), the test agent likely hit maxTurns. Create a new test agent in Recovery Mode with the plan file, dev record, and test report paths, up to 2 retries. If all attempts fail, treat the wave as PASS with a warning (incomplete test coverage)
 - Record the test result (pass/fail), unit test stats, integration test stats, bug count, bug list, skipped integration tests, and test agent ID
 - **Do NOT read the full test report content**
 - **Save state**: update `.forge/{slug}-state.json` with test result, bug info, `agent_ids.test_W{W}`
@@ -169,6 +174,7 @@ Call the **test** agent (Mode 3: Full Integration Test) with:
 - Test log path: `.forge/{slug}-test-integration.log`
 
 After the test agent returns:
+- **Check for truncated reply** — if the reply is missing the result field (pass/fail), create a new test agent in Recovery Mode for the full integration test, up to 2 retries. If all attempts fail, treat as PASS with a warning (incomplete integration test coverage)
 - Record the full integration test result, unit test stats, integration test stats, bug count, bug list
 - If **PASS**: move to Step 4
 - If **FAIL**: move to Step 3b (integration fix loop)
@@ -216,6 +222,7 @@ Call the learner agent with:
 - The slug
 
 After the learner agent returns:
+- **Check for truncated reply** — if the reply is missing the local knowledge path, create a new learner agent in Recovery Mode, up to 2 retries. If all attempts fail, skip the learning step with a warning (knowledge not updated this run)
 - Record how many new lessons were added and the local knowledge file path
 - **Merge to global knowledge base**: read `.forge/{slug}-knowledge.md` and `{knowledge_dir}/knowledge.md`, merge new lessons into the global file (avoid duplicates), write the updated global file
 - **Finalize state**: update `.forge/{slug}-state.json` with `status: "completed"` or `status: "failed"`
@@ -303,7 +310,6 @@ Write `.forge/{slug}-metrics.json` at the end of the workflow:
   "integration_fix_rounds": 0,
   "bugs_found": 5,
   "bugs_by_category": { "unit": 3, "integration": 2 },
-  "bugs_by_severity": { "critical": 0, "high": 1, "medium": 2, "low": 2 },
   "bugs_fixed": 5,
   "knowledge_lessons_added": 4,
   "resumed_from_interrupt": false
@@ -376,12 +382,14 @@ After each agent returns, output a one-line status:
 - `✅ Full integration test passed` or `❌ Full integration test failed — {n} bugs found`
 - `🟪 {n} new lessons learned`
 - `💾 State saved` (after each state file update)
+- `⚠️ {Agent} hit maxTurns, retrying in Recovery Mode (attempt {n}/3)` (when truncated reply detected)
+- `❌ {Agent} failed after 3 attempts — step skipped` (when all retries exhausted)
 
 ## Critical Rules
 
 1. **Each agent's reply contains the essential info** you need (status, paths, bug summaries) — no need to read their files
 2. **Logs are for user inspection only** — you don't need to read them
-3. **When calling the Agent tool, do NOT set subagent_type** — let Claude Code auto-match the custom agents defined in `.claude/agents/`
+3. **Embed full role prompt in each Agent call** — do NOT set `subagent_type`. Since the prompt contains the complete role definition, agent type matching is unnecessary. Each agent call is self-contained via the embedded prompt from `agents/*.md`
 4. **All agents must run in foreground** (DO NOT use run_in_background) — background agents break the sequential workflow, prevent progress output, and make resume unreliable
-5. **Include the full role prompt in each Agent call** — since auto-matching custom agents is not always reliable, embed the role instructions (from agents/*.md) directly in the prompt parameter
-6. **Interactive only at planning phase** — you MAY use AskUserQuestion during Step 1 (Plan). Once Step 2 (Develop) begins, the workflow runs autonomously with no further user interaction until completion
+5. **Interactive only at planning phase** — you MAY use AskUserQuestion during Step 1 (Plan). Once Step 2 (Develop) begins, the workflow runs autonomously with no further user interaction until completion
+6. **MaxTurns exhaustion handling** — After each agent call, check if the reply contains a complete status line. If the reply is truncated (missing status, missing paths, or incomplete output), the agent likely hit its maxTurns limit. Create a new agent in Recovery Mode with the relevant file paths to continue. If recovery also fails after 2 attempts (3 total tries), mark the step as failed, output a warning to the user, and move on

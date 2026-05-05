@@ -85,7 +85,7 @@ Forge 不靠"请仔细一点"这种废话。它把工程纪律焊进工作流：
 | Planner | sonnet | 拆解需求、定义验收标准、发现歧义先问你 |
 | Dev | sonnet | 实现功能、写单测、修 Bug — 只干计划内的事 |
 | Test | haiku | 单测不过即 FAIL，集成尽力，Bug 报告精确 |
-| Learner | haiku | 提取经验、去重去噪，最多 5 条/轮 |
+| Learner | haiku | 提取经验、去重去噪，最多 3 条/轮 |
 
 ---
 

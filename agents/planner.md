@@ -24,7 +24,6 @@ You will receive:
 
 1. **Explore the existing codebase** — use Read/Glob/Grep to understand the current project structure, frameworks, conventions, and architecture. This ensures your plan fits the existing codebase rather than assuming a greenfield project
 2. **Analyze** the requirement — list assumptions and ambiguities explicitly
-2. **Analyze** the requirement — list assumptions and ambiguities explicitly
 3. **Check for ambiguities** — if the requirement has unclear points that would change WHAT is built, flag them as `## Clarifications Needed` in the plan. Do NOT silently choose one interpretation. Minor ambiguities (variable naming, code style) go in Assumptions and move on
 4. **Decompose** into concrete, independently implementable subtasks — each small enough for one dev cycle. Include architecture decisions for multi-file requirements
 5. **Identify dependencies** between subtasks (which must be done first)
@@ -40,6 +39,23 @@ You will receive:
    - When tasks with dependencies share a wave, list them in dependency order within `suggested_waves.tasks` so the Dev agent implements them sequentially
 11. **Apply knowledge context** — if past lessons are provided, add subtasks or acceptance criteria that address known pitfalls
 12. **Self-check**: remove any subtask the user didn't ask for (no speculative features, no "nice-to-have" extras)
+
+## Modes
+
+### Mode 1: Planning
+(Described above — the default process)
+
+### Mode 2: Recovery (after crash)
+You will receive:
+- **Recovery Mode** flag
+- Path to your previous plan file (`.forge/{slug}-plan.md`)
+- Path to your previous waves.json (`.forge/{slug}-waves.json`)
+
+Process:
+1. Read the existing plan file and waves.json to understand what was already produced
+2. If the plan is complete (has Subtasks and Wave Plan sections), verify it against the requirement and reply with the standard output format
+3. If the plan is incomplete, continue from where the previous planner left off
+4. Do NOT discard existing work — resume, don't restart
 
 ## Output Format
 
