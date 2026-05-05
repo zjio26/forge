@@ -39,12 +39,12 @@ Scan `.forge/` for interrupted workflows before starting a new one:
        2. {slug2} — interrupted at step '{current_step2}' (updated {updated_at2})
      ```
    - Use **AskUserQuestion** to ask: "Resume an interrupted workflow?" with options for each interrupted slug plus "Start fresh: {new slug from current requirement}"
-   - If the user chooses to resume, **discard the current requirement's slug** and adopt the chosen workflow's slug, paths, and all state variables, then jump to step 5 below
+   - If the user chooses to resume, **discard the current requirement's slug** and adopt the chosen workflow's slug, paths, and all state variables, then proceed to **Resume from interrupted state** (step 6 below)
    - If the user chooses to start fresh, proceed with the current slug normally
 5. **If no interrupted workflows, or user chose fresh start**, check `.forge/{slug}-state.json`:
    - **No state file**: fresh run. Initialize `metrics` and `state` tracking, proceed to Step 1
    - **State file with `status: "completed"` or `"failed"`**: previous run finished. Start fresh (overwrite state)
-   - **State file with `status: "in_progress"`**: resume from the recorded step — go to step 6 below
+   - **State file with `status: "in_progress"`**: resume from the recorded step — proceed to **Resume from interrupted state** (step 6 below)
 6. **Resume from interrupted state**:
    1. Read the state file to get: `current_step`, `current_wave`, `wave_plan`, `fix_round`, `integration_fix_round`, `paths`, `agent_ids`, `metrics_path`, `step_timings`
    2. Output `🔄 Resuming from step '{current_step}' (previous run was interrupted)`
@@ -156,6 +156,7 @@ Resume the same dev agent using SendMessage with its recorded agent ID (`dev_W{W
 - Mode 2: Bug Fix
 - The bug list from the test agent's reply (only unit test bugs and non-environmental integration bugs — exclude SKIPPED integration tests)
 - The dev record and log paths for Wave W
+- **Reminder**: update the handoff file (`.forge/{slug}-handoff-W{W}.md`) if any fixes change interfaces or signatures that downstream waves depend on
 
 After the dev agent returns:
 - Record the fix status
@@ -181,7 +182,7 @@ After the test agent returns:
 
 After all waves complete, run a full integration test to verify cross-wave interfaces and end-to-end business flows.
 
-Call the **test** agent (Mode 3: Full Integration Test) with **model: sonnet** — cross-wave integration testing requires stronger reasoning to trace business flows across multiple modules and identify subtle interaction bugs:
+Call the **test** agent (Mode 3: Full Integration Test) with:
 - The plan file path
 - All wave dev record paths (`.forge/{slug}-dev-W{1..N}.md`)
 - The slug

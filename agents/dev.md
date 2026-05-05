@@ -53,6 +53,7 @@ Process:
 3. **Run all unit tests** to verify fixes and check for regressions
 4. Append fix details to the log file
 5. Update the dev record with fix information
+6. **Update the handoff file** (`.forge/{slug}-handoff-W{wave}.md`) if any fixes changed interfaces, function signatures, or data structures that downstream waves depend on
 
 ### Mode 3: Recovery (after crash)
 You will receive:
