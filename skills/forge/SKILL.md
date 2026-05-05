@@ -24,37 +24,34 @@ You are the **coordinator** of a multi-agent development workflow. You orchestra
 4. **Read the knowledge base** — first detect the actual installation path by running `ls -d ~/.claude/skills/forge ~/.claude/plugins/forge/skills/forge 2>/dev/null | head -1`, then read `knowledge.md` from that path (if it exists). Extract the content as **knowledge context** — you will pass this to the planner agent so it can learn from past experience. **Record the detected knowledge base path** (referred to as `{knowledge_dir}` below) for later use in Step 4.
 5. **Record the slug, all paths, and knowledge context — you will need them throughout**
 
-### Step 0.3: Scan for Interrupted Workflows
+### Step 0.5: Check for Resumable State
 
-Before checking the current slug's state, scan `.forge/` for **any** interrupted workflows:
+Scan `.forge/` for interrupted workflows before starting a new one:
 
 1. Run `ls .forge/*-state.json 2>/dev/null` to find all state files
-2. For each state file, read it and check if `status` is `"in_progress"`
-3. If one or more interrupted workflows are found:
-   - List them to the user with their slug, interrupted step, and timestamp:
+2. For each state file, read it and check its `status`
+3. Collect all state files with `status: "in_progress"` — these are interrupted workflows
+4. **If interrupted workflows are found**:
+   - List them to the user:
      ```
      ⚠️ Found interrupted workflow(s):
        1. {slug} — interrupted at step '{current_step}', Wave {current_wave} (updated {updated_at})
        2. {slug2} — interrupted at step '{current_step2}' (updated {updated_at2})
      ```
    - Use **AskUserQuestion** to ask: "Resume an interrupted workflow?" with options for each interrupted slug plus "Start fresh: {new slug from current requirement}"
-   - If the user chooses to resume an existing workflow, **discard the current requirement's slug** and adopt the chosen workflow's slug, paths, and all state variables — then jump to Step 0.5 with that slug
-   - If the user chooses to start fresh, proceed normally with the current slug
-4. If no interrupted workflows are found, proceed to Step 0.5 normally
-
-### Step 0.5: Check for Resumable State
-
-Check if `.forge/{slug}-state.json` already exists (the slug may come from Step 0.3 user choice):
-
-- If **NO state file exists**: this is a fresh run. Initialize `metrics` and `state` tracking, proceed to Step 1.
-- If **state file exists with `status: "completed"` or `status: "failed"`**: a previous run already finished. Start fresh (overwrite state).
-- If **state file exists with `status: "in_progress"`**: a previous run was interrupted. Resume from the recorded step:
-  1. Read the state file to get: `current_step`, `current_wave`, `wave_plan`, `fix_round`, `integration_fix_round`, `paths`, `agent_ids`, `metrics_path`, `step_timings`
-  2. Output `🔄 Resuming from step '{current_step}' (previous run was interrupted)`
-  3. Jump to the recorded `current_step` and `current_wave`, continue from there
-  4. If agent IDs are present but the agent is no longer reachable (SendMessage fails), create a new agent in Recovery Mode (see agent definitions) with the relevant file paths so it can rebuild context from the written records
-  5. If resuming at Step 1 (Plan) and no planner agent ID exists, create a new planner agent in Recovery Mode with the existing plan and waves paths
-  6. If resuming at Step 4 (Learn) and no learner agent ID exists, create a new learner agent in Recovery Mode with the dev/test record paths and local knowledge output path
+   - If the user chooses to resume, **discard the current requirement's slug** and adopt the chosen workflow's slug, paths, and all state variables, then jump to step 5 below
+   - If the user chooses to start fresh, proceed with the current slug normally
+5. **If no interrupted workflows, or user chose fresh start**, check `.forge/{slug}-state.json`:
+   - **No state file**: fresh run. Initialize `metrics` and `state` tracking, proceed to Step 1
+   - **State file with `status: "completed"` or `"failed"`**: previous run finished. Start fresh (overwrite state)
+   - **State file with `status: "in_progress"`**: resume from the recorded step — go to step 6 below
+6. **Resume from interrupted state**:
+   1. Read the state file to get: `current_step`, `current_wave`, `wave_plan`, `fix_round`, `integration_fix_round`, `paths`, `agent_ids`, `metrics_path`, `step_timings`
+   2. Output `🔄 Resuming from step '{current_step}' (previous run was interrupted)`
+   3. Jump to the recorded `current_step` and `current_wave`, continue from there
+   4. If agent IDs are present but the agent is no longer reachable (SendMessage fails), create a new agent in Recovery Mode (see agent definitions) with the relevant file paths so it can rebuild context from the written records
+   5. If resuming at Step 1 (Plan) and no planner agent ID exists, create a new planner agent in Recovery Mode with the existing plan and waves paths
+   6. If resuming at Step 4 (Learn) and no learner agent ID exists, create a new learner agent in Recovery Mode with the dev/test record paths and local knowledge output path
 
 **Important**: When resuming, restore all tracked variables (slug, paths, wave_plan, fix_round, agent IDs, metrics) from the state file before continuing.
 
@@ -381,7 +378,6 @@ Please review the test report and fix manually.
 
 **At the start of each step**, output a progress line to the user:
 - `🟦 Step 0: Preparing...`
-- `🔍 Step 0.3: Scanning for interrupted workflows...`
 - `🔄 Step 0.5: Checking for resumable state...`
 - `🟦 Step 1: Planning...`
 - `📊 Step 1.5: Wave plan — {N} waves`
