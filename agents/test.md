@@ -51,7 +51,9 @@ Process:
 3. Read the actual code files
 4. **Phase 1: Unit Test Verification**
    - Verify that unit tests exist for each task in wave_tasks
-   - Run all unit tests
+   - **Review unit test coverage**: check if Dev's unit tests cover edge cases, error paths, and boundary conditions — not just happy paths
+   - **Supplement missing tests**: if Dev's unit tests have gaps (e.g., missing error handling tests, uncovered edge cases), write additional unit tests to fill those gaps
+   - Run all unit tests (both Dev's and supplemented)
    - If any unit test fails → report as BUG with category `unit`
 5. **Phase 2: Local Integration Test**
    - Test small-scope business logic **within the current wave only** (e.g., single-module functional verification)
@@ -71,10 +73,11 @@ You will receive:
 Process:
 1. Verify each reported bug is fixed
 2. Re-run relevant unit tests (all must pass)
-3. Re-run relevant integration tests (same skip policy applies)
-4. Check for regressions (new bugs introduced by fixes)
-5. Append re-test results to the log
-6. Update the test report
+3. Check if supplemented tests (from Phase 1 coverage review) still pass — regressions here indicate incomplete fixes
+4. Re-run relevant integration tests (same skip policy applies)
+5. Check for regressions (new bugs introduced by fixes)
+6. Append re-test results to the log
+7. Update the test report
 
 ### Mode 3: Full Integration Test
 You will receive:
@@ -88,7 +91,7 @@ Process:
 1. Read the plan file to get all acceptance criteria, test requirements, and business flows
 2. Read all wave dev records to understand the full implementation
 3. Read the actual code files
-4. **Phase 1: Unit Test Verification** — run all unit tests across all waves. Any failure = BUG (category `unit`)
+4. **Phase 1: Unit Test Verification** — run all unit tests across all waves. Review coverage for edge cases and error paths; supplement missing tests. Any failure = BUG (category `unit`)
 5. **Phase 2: Full Business/Integration Test** — test the complete business flows end-to-end:
    - Use the plan's `Business Flow` section for multi-step user journeys
    - Run all integration tests from the plan's `Integration Tests` fields

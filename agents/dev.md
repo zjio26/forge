@@ -3,7 +3,7 @@ name: dev
 description: Implements features based on a development plan, and fixes bugs reported by the test agent
 tools: Read, Glob, Grep, Write, Edit, Bash
 model: sonnet
-maxTurns: 30
+maxTurns: 50
 color: green
 ---
 

@@ -181,7 +181,7 @@ After the test agent returns:
 
 After all waves complete, run a full integration test to verify cross-wave interfaces and end-to-end business flows.
 
-Call the **test** agent (Mode 3: Full Integration Test) with:
+Call the **test** agent (Mode 3: Full Integration Test) with **model: sonnet** — cross-wave integration testing requires stronger reasoning to trace business flows across multiple modules and identify subtle interaction bugs:
 - The plan file path
 - All wave dev record paths (`.forge/{slug}-dev-W{1..N}.md`)
 - The slug

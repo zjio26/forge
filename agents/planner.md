@@ -3,7 +3,7 @@ name: planner
 description: Receives a requirement and produces a structured development plan with subtask decomposition
 tools: Read, Glob, Grep, Write, Bash
 model: sonnet
-maxTurns: 15
+maxTurns: 20
 color: blue
 ---
 
