@@ -70,13 +70,13 @@ Call the **planner** agent with:
 - **The knowledge context** from Step 0 (past lessons learned)
 
 After the planner returns:
-- **Check for truncated reply** — if the reply is missing the plan file path (and waves.json path for Standard requirements), the planner likely hit maxTurns. Create a new planner agent in Recovery Mode with the existing plan and waves paths, up to 2 retries (3 total attempts). If all attempts fail, output an error and stop
-- **Detect complexity** — if the planner did not output waves.json, this is a **Simple** requirement (single wave). Synthesize the wave structure: read the subtask IDs from the plan file's `## Subtasks` section (just the `### T{n}: {Title}` headings) and create a virtual wave plan: `{total_waves: 1, tasks: [all task IDs from plan], waves: [{wave: 1, tasks: [all task IDs]}]}`. Treat this identically to a Standard requirement with 1 wave — the workflow proceeds through Steps 1.5, 2, and 3 normally
+- **Check for truncated reply** — if the reply is missing the plan file path or waves.json path, the planner likely hit maxTurns. Create a new planner agent in Recovery Mode with the existing plan and waves paths, up to 2 retries (3 total attempts). If all attempts fail, output an error and stop
+- **Read the waves.json** — the planner always outputs waves.json. Read it to get the wave plan (task groupings, dependencies, complexity). Store this in memory for Step 1.5, do not re-read
 - **Check if the planner flagged ambiguities** — if the plan contains `## Clarifications Needed`, this means the planner has questions that need user input
 - If **clarifications are needed**:
   1. Read the `## Clarifications Needed` section from the plan file
   2. Use **AskUserQuestion** to present the questions to the user (combine into 1-4 questions, each with 2-4 options)
-  3. After the user answers, call the **planner** agent again with the user's answers as additional context, asking it to revise the plan with the ambiguities resolved. **The revised plan MUST also rewrite `.forge/{slug}-waves.json`** (for Standard requirements) if the clarification changes the scope or task structure
+  3. After the user answers, call the **planner** agent again with the user's answers as additional context, asking it to revise the plan with the ambiguities resolved. **The revised plan MUST also rewrite `.forge/{slug}-waves.json`** if the clarification changes the scope or task structure
   4. The revised plan should replace the `## Clarifications Needed` section with `## Confirmed Decisions` documenting what was clarified
 - If **no clarifications needed**: proceed normally
 - **Display the Plan Overview** — read the `## Plan Overview` section from the plan file and output it to the user so they can review the high-level approach before development begins:
@@ -87,16 +87,14 @@ After the planner returns:
     Business Logic: {from plan}
     Key Decisions: {from plan}
   ```
-- Record the plan file path and waves.json path (if Standard requirement)
+- Record the plan file path and waves.json path
 - **Do NOT read other sections of the plan file** (except Clarifications and Plan Overview when needed)
-- **For Standard requirements**: Read the waves.json file to get the wave plan (task groupings, dependencies, complexity) — store this in memory for Step 1.5, do not re-read
-- **For Simple requirements**: the synthesized wave structure from the detect-complexity step is already in memory — no file to read
-- **Save state**: write `.forge/{slug}-state.json` with `current_step: "wave_plan"`, `plan_path`, `waves_path` (Standard only; omit for Simple), `wave_plan: { total_waves: N }` (N=1 for Simple, from waves.json for Standard), and `status: "in_progress"`
+- **Save state**: write `.forge/{slug}-state.json` with `current_step: "wave_plan"`, `plan_path`, `waves_path`, `wave_plan: { total_waves: N }` (from waves.json), and `status: "in_progress"`
 - Move to Step 1.5
 
 ### Step 1.5: Wave Planning
 
-1. Use the wave plan already read/synthesized in Step 1 (do not re-read waves.json). If resuming from a crash where the wave plan is not in memory, reconstruct it: for Standard requirements, re-read the waves.json file from the stored path; for Simple requirements, re-synthesize from the plan file's subtask headings
+1. Use the wave plan already read in Step 1 (do not re-read waves.json). If resuming from a crash where the wave plan is not in memory, reconstruct it by re-reading the waves.json file from the stored path
 2. Output the wave grouping to the user:
    ```
    📊 Wave plan: {N} waves
@@ -117,7 +115,7 @@ For each wave W from 1 to total_waves:
 Build the Dev agent prompt with:
 - The plan file path
 - The slug
-- **Wave tasks**: the task ID list for this wave (from waves.json or synthesized wave plan)
+- **Wave tasks**: the task ID list for this wave (from waves.json)
 - **Wave number**: W
 - **Handoff context**: path to `.forge/{slug}-handoff-W{W-1}.md` (empty for Wave 1)
 - Dev record path: `.forge/{slug}-dev-W{W}.md`
@@ -286,8 +284,6 @@ Write `.forge/{slug}-state.json` at every step transition. Only include fields n
 }
 ```
 
-Note: For Simple requirements (1 wave), `paths.waves` is omitted (no waves.json file) and `wave_paths.W1.handoff` is omitted (no handoff needed for single wave). `wave_plan.total_waves` is 1. `current_bugs` stores the active bug list when in a fix loop (Steps 2c/3b) so crash recovery can resume without losing context; it is an empty array `[]` when not in a fix loop.
-
 ## Metrics File Format
 
 Write `.forge/{slug}-metrics.json` at the end of the workflow:
@@ -305,8 +301,6 @@ Write `.forge/{slug}-metrics.json` at the end of the workflow:
   "knowledge_lessons_added": 4
 }
 ```
-
-For Simple requirements (1 wave), `total_waves` is 1.
 
 ## Output to User
 
