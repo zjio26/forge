@@ -71,7 +71,7 @@ Process:
 4. **Phase 1: Unit Test Verification** — run all unit tests across all waves. Any failure = BUG (category `unit`)
 5. **Phase 2: Full Business/Integration Test** — test the complete business flows end-to-end:
    - Use the plan's `Business Flow` section for multi-step user journeys
-   - Run all integration tests from the plan's `Integration Tests` fields
+   - Design integration test scenarios based on the plan's `Business Flow` section and each task's `Test Guidance`
    - Environmental failures → SKIPPED (not a bug)
    - Actual code failures → BUG (category `integration`)
 6. Write the test report

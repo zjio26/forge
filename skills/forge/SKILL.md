@@ -95,16 +95,36 @@ After the planner returns:
 ### Step 1.5: Wave Planning
 
 1. Use the wave plan already read in Step 1 (do not re-read waves.json). If resuming from a crash where the wave plan is not in memory, reconstruct it by re-reading the waves.json file from the stored path
-2. Output the wave grouping to the user:
+2. **Validate wave efficiency** — check for over-splitting:
+   - Compute `total_complexity_sum` from the waves.json task list (M=2, L=4)
+   - Compute `total_tasks` from the waves.json task list
+   - Count waves with only 1 task (`single_task_waves`)
+   - If `total_waves > 1` AND (`single_task_waves > 0` OR `total_waves > total_tasks / 2` OR `total_complexity_sum <= 15`), warn the user:
+     ```
+     ⚠️ Wave plan may be over-split:
+       - {N} waves for {M} tasks (avg {M/N:.1f} tasks/wave)
+       - {K} single-task wave(s)
+       - Total complexity sum: {X} (≤15 suggests 1 wave is sufficient)
+       Recommendation: merge waves to reduce overhead. Each wave costs 2 agent invocations + handoff + integration test.
+     ```
+     Use **AskUserQuestion** to ask: "Wave plan has {N} waves for {M} tasks. Merge into fewer waves?" with options:
+     - "Re-plan with fewer waves" — re-invoke the planner with the same requirement and a note to minimize waves
+     - "Continue as-is" — proceed with the current wave plan
+   - If `total_waves >= 3` AND `total_complexity_sum <= 20`, warn the user:
+     ```
+     ⚠️ 3 waves for complexity {X} suggests over-splitting. Consider merging waves.
+     ```
+   - If `total_waves > 3`, this exceeds the hard limit. Re-invoke the planner with a note to reduce to 3 waves or fewer — do not ask the user
+3. Output the wave grouping to the user:
    ```
    📊 Wave plan: {N} waves
-     Wave 1: T1, T3 (foundation)
+     Wave 1: T1, T3
      Wave 2: T2, T4
      Wave 3: T5
    ```
-3. If there is only **1 wave** (all tasks in a single group), the wave loop in Step 2 will execute exactly once — no special handling needed
-4. **Save state**: update `.forge/{slug}-state.json` with `current_step: "dev"`, `current_wave: 1`, and `wave_plan: { total_waves: N, current_wave: 1 }` where N is the number of waves
-- Move to Step 2
+4. If there is only **1 wave** (all tasks in a single group), the wave loop in Step 2 will execute exactly once — no special handling needed
+5. **Save state**: update `.forge/{slug}-state.json` with `current_step: "dev"`, `current_wave: 1`, and `wave_plan: { total_waves: N, current_wave: 1 }` where N is the number of waves
+   - Move to Step 2
 
 ### Step 2: Develop
 
@@ -179,8 +199,6 @@ After the test agent returns:
 - If **FAIL** and `fix_round >= 3`: **stop the loop**, move to next wave (or Step 3 if last wave). Learn still runs even on failure
 
 ### Step 3: Full Integration Test
-
-If `total_waves == 1`, skip this step — there are no cross-wave interfaces to test. Proceed directly to Step 4.
 
 After all waves complete, run a full integration test to verify cross-wave interfaces and end-to-end business flows.
 
@@ -295,10 +313,17 @@ Write `.forge/{slug}-metrics.json` at the end of the workflow:
   "started_at": "2026-04-28T10:00:00Z",
   "completed_at": "2026-04-28T10:30:00Z",
   "total_duration_sec": 1800,
-  "total_waves": 3,
-  "bugs_found": 5,
-  "bugs_fixed": 5,
-  "knowledge_lessons_added": 4
+  "total_waves": 1,
+  "bugs_found": 2,
+  "bugs_fixed": 2,
+  "knowledge_lessons_added": 1,
+  "wave_efficiency": {
+    "total_tasks": 4,
+    "total_waves": 1,
+    "tasks_per_wave": 4.0,
+    "single_task_waves": 0,
+    "complexity_sum": 10
+  }
 }
 ```
 

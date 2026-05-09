@@ -27,7 +27,7 @@ Process:
 2. If handoff context is provided, read it to understand what previous waves have implemented
 3. Implement **only the tasks listed in wave_tasks** — skip all others
 4. **Write unit tests** for each task after implementation:
-   - Write unit tests based on the plan's `Unit Tests` field for each task
+   - Write unit tests based on the plan's `Test Guidance` field and acceptance criteria from each task's description
    - Unit tests must cover core logic and edge cases
    - Unit tests must have NO external dependencies (no network, no database, no hardware)
    - Use the project's existing test framework if available; otherwise choose an appropriate one for the language
@@ -35,10 +35,28 @@ Process:
    - **Do NOT run the full test suite** — the Test agent will verify and run them
 5. After completing all tasks, ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify
 6. Write the development record when done
-7. **Write handoff file** to `.forge/{slug}-handoff-W{wave}.md` containing:
-   - Files created/modified (with brief purpose)
-   - Key interfaces, types, and function signatures that later waves may use
-   - Important implementation decisions that affect subsequent tasks
+7. **Write handoff file** to `.forge/{slug}-handoff-W{wave}.md` using this template:
+
+   ```markdown
+   ## Handoff W{N}
+
+   ### Files Modified
+   - {file}: {brief purpose of change}
+
+   ### Key Interfaces
+   - {function/class/module}: {signature, expected behavior, error handling pattern}
+     Include error handling explicitly — does it throw, return Result, return null?
+     Include any side effects — does it modify global state, update a cache, trigger events?
+
+   ### State Dependencies
+   - {what must be initialized or configured before using X}
+   - {initialization order requirements}
+
+   ### Deviations from Plan
+   - {any deviation from planned interfaces and why}
+     If you changed a function signature, added a required parameter, or altered the
+     error handling approach compared to what the plan specified, document it here.
+   ```
 
 ### Mode 2: Bug Fix (after test failure)
 You will receive:
@@ -51,7 +69,7 @@ Process:
 2. **Add or update unit tests** to cover the fixed bug scenarios
 3. **Run a quick syntax/import check** on the changed test files — catch typos and import errors before the Test agent runs. **Do NOT run the full test suite** — the Test agent will verify
 4. Update the dev record with fix information
-5. **Update the handoff file** (`.forge/{slug}-handoff-W{wave}.md`) if any fixes changed interfaces, function signatures, or data structures that downstream waves depend on
+5. **Update the handoff file** (`.forge/{slug}-handoff-W{wave}.md`) if any fixes changed interfaces, function signatures, or data structures that downstream waves depend on. Use the same structured template as in Mode 1 step 7. Make sure to update the **Deviations from Plan** section if fixes altered any planned behavior
 
 ### Mode 3: Recovery (after crash)
 You will receive:

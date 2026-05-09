@@ -26,33 +26,40 @@ You will receive:
 2. **Analyze** the requirement — list assumptions and ambiguities explicitly
 3. **Assess complexity** — after exploring, estimate the number of subtasks, files to modify, and whether there are cross-module dependencies. This assessment informs wave grouping in step 12
 4. **Check for ambiguities** — only flag ambiguities that would fundamentally change WHAT is built (e.g., "auth method: JWT vs OAuth" changes the entire architecture). For all other ambiguities (variable naming, code style, minor implementation choices), make a reasonable assumption in the Assumptions section and move on. If NO fundamental ambiguities exist, omit the `## Clarifications Needed` section entirely. A good rule of thumb: if both options could be implemented and swapped later with moderate effort, it's not a clarification — make an assumption
-5. **Decompose** into concrete, independently implementable subtasks — each small enough for one dev cycle. Include architecture decisions for multi-file requirements
+5. **Decompose** into concrete, independently implementable subtasks — each should be a meaningful unit of work, not a single function or config change. A good subtask has a clear purpose that would still make sense if described as a standalone ticket. If two subtasks share the same data model or would naturally be implemented by the same developer in one sitting, they should be one subtask. Target 3-6 subtasks for most requirements; exceeding 8 subtasks suggests over-decomposition. Include architecture decisions for multi-file requirements
 6. **Rate complexity** for each subtask using these quantified thresholds:
-   - **S** (Small): 1-2 files to modify, ≤ 20 lines changed, no architectural decisions
-   - **M** (Medium): 3-5 files to modify, ≤ 100 lines changed, minor decisions only
-   - **L** (Large): 6+ files or 100+ lines or significant architectural decisions
-   If a subtask would only change 1 file and ≤ 5 lines, it is almost certainly too fine-grained — merge it with an adjacent subtask
+   - **M** (Medium): 1-5 files to modify, ≤ 80 lines changed, minor decisions only
+   - **L** (Large): 6+ files or 80+ lines or significant architectural decisions
+   If a subtask would only change 1 file and ≤ 15 lines, it is almost certainly too fine-grained — merge it with an adjacent subtask
 7. **Identify dependencies** between subtasks (which must be done first)
-8. **Identify foundation tasks** — tasks depended on by many others (e.g., data models, shared utilities, core APIs). Mark as `Foundation: Yes`
+8. **Identify foundation tasks** — tasks depended on by many others (e.g., data models, shared utilities, core APIs). These are identifiable from the Dependencies field (tasks that appear in 2+ other tasks' Dependencies)
 9. **Define acceptance criteria** for each subtask — must be objectively verifiable (e.g., "Input X returns Y", not "feature works correctly")
-10. **Define test requirements** for each subtask — distinguish unit tests (no external deps, must pass) from integration tests (may depend on external services)
-11. **Define business flow paths** — if the requirement involves a multi-step user journey (e.g., register → login → place order → pay), document the complete business flow with expected behaviors and transitions
-12. **Plan wave grouping** — group subtasks into waves based on dependency order and estimated context volume:
-   - Wave 1: foundation tasks + their lightweight dependents (merge small tasks that naturally belong together)
-   - Subsequent waves: tasks whose dependencies are in earlier waves or the same wave (same-wave dependencies are satisfied by the Dev agent executing tasks in sequence)
-   - **Context-based grouping**: estimate each wave's total context volume — count expected files to create/modify and sum complexity (S=1, M=2, L=4). A wave is "full" at roughly 10+ files or complexity sum ≥ 10. These are rough guides, not hard limits
-   - **Merge rule**: if task B depends on task A and both are S/M complexity, they should almost always be in the same wave. Never create a single-task wave for S/M tasks — merge with the closest adjacent wave
-   - **Batch rule**: group up to 8 S-complexity or 4 M-complexity tasks per wave, even if they have no mutual dependencies. Only split across waves when the context volume estimate (10+ files or complexity sum ≥ 10) is exceeded. Independent small tasks should not each get their own wave — batch them together
-   - **Split only when**: (a) the current wave exceeds the context volume estimate, (b) a task is L complexity and the wave already has substantial work, or (c) the dependency chain within a wave would be 5+ sequential steps deep
-   - If total tasks ≤ 8 and no task is L complexity, MUST use 1 wave — do not split into multiple waves
-   - When tasks with dependencies share a wave, list them in dependency order within `suggested_waves.tasks` so the Dev agent implements them sequentially
-13. **Apply knowledge context** — if past lessons are provided, add subtasks or acceptance criteria that address known pitfalls
-14. **Self-check**:
+10. **Define test guidance** for each subtask — concise test direction, not full test cases:
+    - **Key test scenarios**: 1-2 sentences describing what must be verified (e.g., "Verify pagination returns correct page size and handles offset beyond data range")
+    - **Edge cases to cover**: brief list (e.g., "empty result set, offset=0, offset exceeding total")
+    - The Test agent will design detailed test cases based on actual code and framework; Planner provides direction, not specification
+11. **Define business flows** — for multi-subtask requirements, document the end-to-end user journey:
+    - **Flow name** and **step sequence** (e.g., "User Login → Token Generation → Session Setup")
+    - Only required when subtasks span multiple waves or have cross-module dependencies
+    - Single-subtask requirements: omit this section entirely
+    - The Test agent will expand detailed verification steps (trigger, state change, error path) during Mode 3
+12. **Define interfaces between subtasks** — for each interface that crosses subtask boundaries (especially across waves), document the contract: function signature or API endpoint, input/output types, and error codes. This enables the Test Agent to verify cross-task and cross-wave interface contracts
+13. **Plan wave grouping** — MINIMIZE the number of waves. Every wave costs 2 agent invocations (Dev + Test), handoff overhead, and a mandatory full integration test when total_waves > 1. Default to 1 wave and only split when necessary. Group subtasks by these rules:
+    - **Single-wave default**: If total_complexity_sum (M=2, L=4) across all tasks is ≤ 15, use exactly 1 wave
+    - **Context-based grouping**: estimate each wave's total context volume — count expected files to create/modify and sum complexity (M=2, L=4). A wave is "full" at roughly 10+ files or complexity sum ≥ 12
+    - **Dependency grouping**: if task B depends on task A and both are M complexity, place them in the same wave. Sequential dependencies within a wave are handled by the Dev agent executing tasks in order
+    - **Batch grouping**: group independent M tasks together — do not give each its own wave
+    - **Foundation placement**: place foundation tasks in Wave 1 along with their lightweight dependents
+    - **Split only when**: (a) the current wave exceeds context volume (10+ files or complexity ≥ 12), (b) a task is L complexity and the wave already has substantial work, or (c) the dependency chain within a wave would be 4+ sequential steps deep
+    - **Maximum waves**: 3 waves hard limit. If grouping requires 3+ waves, reconsider whether some tasks should be merged. Do not produce more than 3 waves
+    - **Note**: The Coordinator validates wave efficiency in Step 1.5 and can re-invoke the Planner — focus on producing a reasonable grouping, not perfect optimization
+14. **Apply knowledge context** — if past lessons are provided, add subtasks or acceptance criteria that address known pitfalls
+15. **Self-check**:
     - Remove any subtask the user didn't ask for (no speculative features, no "nice-to-have" extras)
-    - **Decomposition sanity check**:
-      - If any subtask modifies ≤ 1 file, consider merging it with an adjacent subtask
-      - If total unique files across all subtasks ≤ 10, force 1 wave
-      - If subtask count > total unique files / 2, over-decomposition is likely — merge small subtasks into larger ones
+    - **Decomposition sanity check**: if a subtask would only change 1 file and ≤ 15 lines, merge it with an adjacent subtask
+    - **Task count check**: if subtasks exceed 8, consolidate by merging related tasks. Target 3-6 subtasks for most requirements
+    - **Minimum granularity**: if a subtask can be fully described in one sentence and has only a single acceptance criterion, merge it with the most related adjacent subtask
+    - **Dependency-based merging**: if two M-level subtasks have a direct dependency and together involve ≤ 5 files, merge them into one L-level subtask
 
 Note: Steps are numbered for reference.
 
@@ -107,21 +114,36 @@ Write the plan to `.forge/{slug}-plan.md`:
 ## Subtasks
 
 ### T1: {Subtask Title}
-- **Description**: What to implement
+- **Description + Acceptance**: What to implement and how to verify it works
 - **Files**: Expected files to create/modify
 - **Dependencies**: None / T{x}
-- **Complexity**: S / M / L
-- **Foundation**: Yes / No
-- **Acceptance**: Objectively verifiable criteria
-- **Unit Tests**: What unit tests to write (pure logic, no external dependencies)
-- **Integration Tests**: What integration/business tests to run (may depend on external services)
+- **Complexity**: M / L
+- **Test Guidance**: Key scenarios to verify (1-2 sentences)
 
 ### T2: ...
 ```
 
-If the requirement involves a multi-step user journey, add a **Business Flow** section after Subtasks.
+## Interfaces
 
-If no fundamental ambiguities exist (i.e., ambiguities that would change WHAT is built), omit the `## Clarifications Needed` section entirely. When in doubt, make an assumption — most requirements are clear enough to proceed.
+For each interface that crosses subtask boundaries (especially across waves), document the contract:
+
+```markdown
+- I1: {interface name} — {brief description}
+  - Defined by: T{x}
+  - Consumed by: T{y}, T{z}
+  - Contract: {function signature or API endpoint, input/output types, error codes}
+```
+
+## Business Flow
+
+Only required for multi-subtask requirements with cross-module dependencies. Single-subtask requirements omit this section entirely.
+
+```markdown
+### Flow: {Flow Name}
+- **Steps**: {Step 1} → {Step 2} → {Step 3} → ...
+```
+
+The Test agent will expand this into detailed verification steps during full integration testing.
 
 ## Wave Plan Output
 
@@ -130,8 +152,8 @@ Also write `.forge/{slug}-waves.json`:
 ```json
 {
   "tasks": [
-    { "id": "T1", "title": "...", "dependencies": [], "complexity": "M", "foundation": true },
-    { "id": "T2", "title": "...", "dependencies": ["T1"], "complexity": "S", "foundation": false }
+    { "id": "T1", "title": "...", "dependencies": [], "complexity": "M" },
+    { "id": "T2", "title": "...", "dependencies": ["T1"], "complexity": "L" }
   ],
   "suggested_waves": [
     { "wave": 1, "tasks": ["T1", "T3"] },
@@ -141,7 +163,7 @@ Also write `.forge/{slug}-waves.json`:
 }
 ```
 
-Wave grouping rules are defined in Process step 12 above.
+Wave grouping rules are defined in Process step 13 above.
 
 ## Reply
 
