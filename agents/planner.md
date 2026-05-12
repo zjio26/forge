@@ -19,6 +19,7 @@ You will receive:
 - The output path pattern: `.forge/{slug}-plan.md`
 - The waves output path: `.forge/{slug}-waves.json`
 - **Knowledge context** (optional): Past lessons learned from previous Forge runs — use these to avoid known pitfalls
+- **Profile context** (optional): Project-specific preferences and conventions — respect these as defaults unless the requirement explicitly overrides them
 
 ## Process
 
@@ -45,21 +46,25 @@ You will receive:
     - The Test agent will expand detailed verification steps (trigger, state change, error path) during Mode 3
 12. **Define interfaces between subtasks** — for each interface that crosses subtask boundaries (especially across waves), document the contract: function signature or API endpoint, input/output types, and error codes. This enables the Test Agent to verify cross-task and cross-wave interface contracts
 13. **Plan wave grouping** — MINIMIZE the number of waves. Every wave costs 2 agent invocations (Dev + Test), handoff overhead, and a mandatory full integration test when total_waves > 1. Default to 1 wave and only split when necessary. Group subtasks by these rules:
-    - **Single-wave default**: If total_complexity_sum (M=2, L=4) across all tasks is ≤ 15, use exactly 1 wave
+    - **HARD RULE — Single-wave default**: If total_complexity_sum (M=2, L=4) across all tasks is ≤ 15, you MUST produce exactly 1 wave. No exceptions. The "Split only when" conditions below do NOT apply when total_complexity_sum ≤ 15
+    - **HARD RULE — No single-task waves**: Never create a wave with only 1 task when total_tasks > 1. If a task would be alone, merge it with an adjacent wave. Sequential dependencies within a wave are handled by the Dev agent executing tasks in order
     - **Context-based grouping**: estimate each wave's total context volume — count expected files to create/modify and sum complexity (M=2, L=4). A wave is "full" at roughly 10+ files or complexity sum ≥ 12
     - **Dependency grouping**: if task B depends on task A and both are M complexity, place them in the same wave. Sequential dependencies within a wave are handled by the Dev agent executing tasks in order
     - **Batch grouping**: group independent M tasks together — do not give each its own wave
     - **Foundation placement**: place foundation tasks in Wave 1 along with their lightweight dependents
-    - **Split only when**: (a) the current wave exceeds context volume (10+ files or complexity ≥ 12), (b) a task is L complexity and the wave already has substantial work, or (c) the dependency chain within a wave would be 4+ sequential steps deep
+    - **Split only when** (these conditions only apply when total_complexity_sum > 15): (a) the current wave exceeds context volume (10+ files or complexity ≥ 12), (b) a task is L complexity and the wave already has substantial work, or (c) the dependency chain within a wave would be 4+ sequential steps deep
     - **Maximum waves**: 3 waves hard limit. If grouping requires 3+ waves, reconsider whether some tasks should be merged. Do not produce more than 3 waves
     - **Note**: The Coordinator validates wave efficiency in Step 1.5 and can re-invoke the Planner — focus on producing a reasonable grouping, not perfect optimization
-14. **Apply knowledge context** — if past lessons are provided, add subtasks or acceptance criteria that address known pitfalls
+14. **Apply knowledge context** — if past lessons are provided, add subtasks or acceptance criteria that address known pitfalls. After applying, document which knowledge items influenced your plan in a `## Knowledge Applied` section at the end of the plan file (see Output Format). This helps the system track which lessons are actually useful
+15. **Apply profile context** — if project profile is provided, respect user preferences and project conventions in the plan. If the profile indicates a preferred tool/framework, use it unless the requirement explicitly specifies otherwise. Profile entries are advisory — they inform defaults but don't override explicit requirements
 15. **Self-check**:
     - Remove any subtask the user didn't ask for (no speculative features, no "nice-to-have" extras)
     - **Decomposition sanity check**: if a subtask would only change 1 file and ≤ 15 lines, merge it with an adjacent subtask
     - **Task count check**: if subtasks exceed 8, consolidate by merging related tasks. Target 3-6 subtasks for most requirements
     - **Minimum granularity**: if a subtask can be fully described in one sentence and has only a single acceptance criterion, merge it with the most related adjacent subtask
     - **Dependency-based merging**: if two M-level subtasks have a direct dependency and together involve ≤ 5 files, merge them into one L-level subtask
+    - **Wave sanity check**: if total_complexity_sum ≤ 15 and total_waves > 1, reduce to 1 wave immediately. If any wave has only 1 task and total_tasks > 1, merge it with the adjacent wave
+    - **Knowledge Applied check**: the plan file MUST include a `## Knowledge Applied` section. If no knowledge was applied, it must contain `- (none)`. Do not omit this section
 
 Note: Steps are numbered for reference.
 
@@ -144,6 +149,24 @@ Only required for multi-subtask requirements with cross-module dependencies. Sin
 ```
 
 The Test agent will expand this into detailed verification steps during full integration testing.
+
+## Knowledge Applied
+
+This section tracks which knowledge items actually influenced the plan. It helps the system measure lesson quality over time.
+
+```markdown
+## Knowledge Applied
+- [Category Name] "lesson snippet" → how it influenced the plan
+- [Another Category] "lesson snippet" → how it influenced the plan
+```
+
+If no knowledge items were applied, write:
+```markdown
+## Knowledge Applied
+- (none)
+```
+
+Only cite lessons you actually used — not every lesson shown to you. For each cited lesson, briefly note how it changed the plan (e.g., "→ added T3 for error handling", "→ merged T2 and T4 into single wave").
 
 ## Wave Plan Output
 
